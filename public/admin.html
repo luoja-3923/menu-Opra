@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Menü OPRA — Verwaltung</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0efe8; color: #1a1a1a; min-height: 100vh; }
+
+.topbar { background: #2d5a3d; color: #c8a050; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; }
+.topbar-title { font-family: 'Cinzel', serif; font-size: 16px; letter-spacing: 0.1em; }
+.topbar-links { display: flex; gap: 16px; align-items: center; }
+.topbar a { color: #c8a050; font-size: 13px; text-decoration: underline; }
+
+.main { max-width: 820px; margin: 32px auto; padding: 0 24px 60px; }
+
+.tabs { display: flex; gap: 4px; }
+.tab { padding: 8px 20px; border-radius: 8px 8px 0 0; font-size: 13px; font-weight: 500; cursor: pointer; border: 1px solid #e0dfd8; border-bottom: none; background: #e8e7e0; color: #555; user-select: none; }
+.tab.active { background: #fff; color: #2d5a3d; }
+.tab-container { background: #fff; border: 1px solid #e0dfd8; border-radius: 0 12px 12px 12px; padding: 24px; }
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+h2 { font-size: 15px; font-weight: 600; margin-bottom: 16px; }
+
+.card { background: #f8f7f2; border: 1px solid #e0dfd8; border-radius: 10px; padding: 18px; margin-bottom: 16px; }
+.card:last-child { margin-bottom: 0; }
+
+table { width: 100%; border-collapse: collapse; }
+th { font-size: 11px; font-weight: 500; color: #888; text-transform: uppercase; letter-spacing: 0.08em; text-align: left; padding: 0 10px 10px 0; border-bottom: 1px solid #e0dfd8; }
+td { padding: 10px 10px 10px 0; border-bottom: 1px solid #eeede6; font-size: 14px; vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+
+.badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; }
+.badge-admin { background: #e8f3eb; color: #2d5a3d; }
+.badge-tag   { background: #e8eef3; color: #2d4a6b; }
+.badge-woche { background: #f3ede8; color: #6b4530; }
+.badge-beide { background: #f0e8f3; color: #5a2d6b; }
+
+.btn { font-family: inherit; cursor: pointer; border-radius: 6px; padding: 5px 12px; font-size: 12px; font-weight: 500; }
+.btn-danger { background: #fff; color: #a32d2d; border: 1px solid #f09595; }
+.btn-danger:hover { background: #fcebeb; }
+.btn-pw { background: #f0efe8; color: #333; border: 1px solid #d0cfc9; }
+.btn-pw:hover { background: #e5e4dc; }
+
+label { display: block; font-size: 11px; font-weight: 500; color: #888; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 5px; margin-top: 14px; }
+label:first-child { margin-top: 0; }
+
+input, select { width: 100%; border: 1px solid #d0cfc9; border-radius: 8px; padding: 8px 10px; font-size: 14px; background: #fff; outline: none; font-family: inherit; transition: border 0.15s; }
+input:focus, select:focus { border-color: #2d5a3d; }
+
+.form-row  { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+.form-row > div, .form-row3 > div { display: flex; flex-direction: column; }
+
+.btn-primary { background: #2d5a3d; color: #c8a050; border: none; border-radius: 8px; padding: 9px 20px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: inherit; margin-top: 16px; }
+.btn-primary:hover { background: #1b3d2b; }
+
+.msg { border-radius: 8px; padding: 9px 14px; font-size: 13px; margin-top: 12px; display: none; }
+.msg-ok  { background: #eaf3de; color: #2d5a3d; border: 1px solid rgba(150,196,89,0.4); }
+.msg-err { background: #fcebeb; color: #a32d2d; border: 1px solid #f09595; }
+
+/* Modal */
+.modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 100; align-items: center; justify-content: center; }
+.modal-bg.open { display: flex; }
+.modal { background: #fff; border-radius: 12px; padding: 28px; width: 340px; }
+.modal h3 { font-size: 15px; font-weight: 500; margin-bottom: 16px; }
+.modal-btns { display: flex; gap: 8px; margin-top: 16px; }
+.modal-btns button { flex: 1; }
+.btn-cancel { background: #f0efe8; color: #333; border: 1px solid #d0cfc9; border-radius: 8px; padding: 8px; font-size: 14px; cursor: pointer; font-family: inherit; }
+.btn-logout { background: rgba(200,160,80,0.15); border: 1px solid rgba(200,160,80,0.4); color: #c8a050; border-radius: 6px; padding: 5px 14px; font-size: 13px; cursor: pointer; font-family: inherit; }
+
+/* Versenden */
+.send-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.send-card { border: 1px solid #e0dfd8; border-radius: 10px; padding: 18px; background: #f8f7f2; }
+.send-card h3 { font-size: 14px; font-weight: 600; color: #2d5a3d; margin-bottom: 14px; }
+.btn-outlook { background: #0078d4; color: #fff; border: none; border-radius: 8px; padding: 10px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: inherit; width: 100%; margin-top: 14px; }
+.btn-outlook:hover { background: #006cbd; }
+.recipient-count { font-size: 12px; color: #888; margin-top: 8px; min-height: 18px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="topbar-title">✦ MENÜ OPRA — Verwaltung</span>
+  <div class="topbar-links">
+    <a href="/">← Zurück zur App</a>
+    <button class="btn-logout" onclick="logout()">Abmelden</button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="tabs">
+    <div class="tab active" onclick="showTab('benutzer',this)">Benutzer</div>
+    <div class="tab" onclick="showTab('verteiler',this)">Verteilerliste</div>
+    <div class="tab" onclick="showTab('senden',this)">E-Mail versenden</div>
+  </div>
+
+  <div class="tab-container">
+
+    <!-- ── Benutzer ── -->
+    <div id="tab-benutzer" class="tab-panel active">
+      <div class="card">
+        <h2>Benutzer</h2>
+        <table>
+          <thead><tr><th>Name</th><th>Benutzername</th><th>Rolle</th><th>Aktionen</th></tr></thead>
+          <tbody id="user-list"><tr><td colspan="4" style="color:#888;font-size:13px">Wird geladen…</td></tr></tbody>
+        </table>
+      </div>
+      <div class="card">
+        <h2>Neuer Benutzer</h2>
+        <div class="form-row">
+          <div><label for="new-name">Vollständiger Name</label><input id="new-name" type="text" placeholder="Maria Meier"></div>
+          <div><label for="new-user">Benutzername</label><input id="new-user" type="text" placeholder="mmeier" autocapitalize="none"></div>
+        </div>
+        <div class="form-row">
+          <div><label for="new-pw">Passwort</label><input id="new-pw" type="password" placeholder="Min. 4 Zeichen"></div>
+          <div><label for="new-role">Rolle</label><select id="new-role"><option value="admin">Admin</option></select></div>
+        </div>
+        <button class="btn-primary" onclick="createUser()">Benutzer anlegen</button>
+        <div class="msg msg-ok"  id="create-ok">Benutzer angelegt.</div>
+        <div class="msg msg-err" id="create-err"></div>
+      </div>
+    </div>
+
+    <!-- ── Verteilerliste ── -->
+    <div id="tab-verteiler" class="tab-panel">
+      <div class="card">
+        <h2>Empfänger</h2>
+        <table>
+          <thead><tr><th>Name</th><th>E-Mail</th><th>Gruppe</th><th>Aktion</th></tr></thead>
+          <tbody id="recipient-list"><tr><td colspan="4" style="color:#888;font-size:13px">Wird geladen…</td></tr></tbody>
+        </table>
+      </div>
+      <div class="card">
+        <h2>Neuer Empfänger</h2>
+        <div class="form-row3">
+          <div><label for="r-name">Name</label><input id="r-name" type="text" placeholder="Hans Müller"></div>
+          <div><label for="r-email">E-Mail</label><input id="r-email" type="email" placeholder="hans@firma.ch"></div>
+          <div>
+            <label for="r-gruppe">Gruppe</label>
+            <select id="r-gruppe">
+              <option value="beide">Beide (Tag &amp; Woche)</option>
+              <option value="woche">Nur Wochenmenü</option>
+              <option value="tag">Nur Tagesmenü</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn-primary" onclick="addRecipient()">Hinzufügen</button>
+        <div class="msg msg-ok"  id="r-ok">Empfänger hinzugefügt.</div>
+        <div class="msg msg-err" id="r-err"></div>
+      </div>
+    </div>
+
+    <!-- ── E-Mail versenden ── -->
+    <div id="tab-senden" class="tab-panel">
+      <p style="font-size:13px;color:#666;margin-bottom:18px;">
+        Klick auf «In Outlook öffnen» erstellt eine neue E-Mail mit den Empfängern im BCC-Feld und dem Menütext im Textfeld — du kannst sie vor dem Senden noch anpassen.
+      </p>
+      <div class="send-grid">
+
+        <!-- Wochenmenü -->
+        <div class="send-card">
+          <h3>📅 Wochenmenü</h3>
+          <div class="form-row">
+            <div><label for="s-kw-w">KW</label><input id="s-kw-w" type="number" min="1" max="53"></div>
+            <div><label for="s-yr-w">Jahr</label><input id="s-yr-w" type="number" min="2024" max="2035"></div>
+          </div>
+          <div>
+            <label for="s-gruppe-w">Empfänger</label>
+            <select id="s-gruppe-w" onchange="updateCount('w')">
+              <option value="woche+beide">Wochenmenü-Gruppe + Beide</option>
+              <option value="woche">Nur Gruppe Wochenmenü</option>
+              <option value="beide">Nur Gruppe Beide</option>
+              <option value="alle">Alle Empfänger</option>
+            </select>
+          </div>
+          <div class="recipient-count" id="count-w"></div>
+          <button class="btn-outlook" onclick="openOutlook('week')">In Outlook öffnen</button>
+          <div class="msg msg-err" id="send-w-err"></div>
+        </div>
+
+        <!-- Tagesmenü -->
+        <div class="send-card">
+          <h3>☀ Tagesmenü</h3>
+          <div class="form-row">
+            <div><label for="s-kw-d">KW</label><input id="s-kw-d" type="number" min="1" max="53"></div>
+            <div><label for="s-yr-d">Jahr</label><input id="s-yr-d" type="number" min="2024" max="2035"></div>
+          </div>
+          <div>
+            <label for="s-day">Tag</label>
+            <select id="s-day">
+              <option value="0">Montag</option>
+              <option value="1">Dienstag</option>
+              <option value="2">Mittwoch</option>
+              <option value="3">Donnerstag</option>
+              <option value="4">Freitag</option>
+            </select>
+          </div>
+          <div>
+            <label for="s-gruppe-d">Empfänger</label>
+            <select id="s-gruppe-d" onchange="updateCount('d')">
+              <option value="tag+beide">Tagesmenü-Gruppe + Beide</option>
+              <option value="tag">Nur Gruppe Tagesmenü</option>
+              <option value="beide">Nur Gruppe Beide</option>
+              <option value="alle">Alle Empfänger</option>
+            </select>
+          </div>
+          <div class="recipient-count" id="count-d"></div>
+          <button class="btn-outlook" onclick="openOutlook('day')">In Outlook öffnen</button>
+          <div class="msg msg-err" id="send-d-err"></div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- .tab-container -->
+</div><!-- .main -->
+
+<!-- Passwort-Modal -->
+<div class="modal-bg" id="pw-modal">
+  <div class="modal">
+    <h3>Passwort ändern für <span id="pw-modal-name"></span></h3>
+    <label for="pw-new">Neues Passwort</label>
+    <input id="pw-new" type="password" placeholder="Min. 4 Zeichen">
+    <div class="msg msg-err" id="pw-err" style="margin-top:8px"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closePwModal()">Abbrechen</button>
+      <button class="btn-primary" style="margin-top:0" onclick="savePw()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentUserId = null;
+let pwTargetId    = null;
+let allRecipients = [];
+
+const DAYS_DE = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag'];
+
+const ZITATE = [
+  { text: 'Man ist, was man isst.', autor: 'Ludwig Feuerbach' },
+  { text: 'Die Entdeckung eines neuen Gerichts beglückt die Menschheit mehr als die Entdeckung eines Sterns.', autor: 'Brillat-Savarin' },
+  { text: 'Gutes Essen ist die Grundlage des wahren Glücks.', autor: 'Auguste Escoffier' },
+  { text: 'Kochen ist wie Liebe — man muss sich ganz hineingeben oder es ganz lassen.', autor: 'Harriet van Horne' },
+  { text: 'Das Essen soll zuerst das Auge erfreuen und dann den Magen.', autor: 'Volksweisheit' },
+  { text: 'Der Tisch ist der einzige Ort, an dem man nie von Anfang an gelangweilt ist.', autor: 'Brillat-Savarin' },
+  { text: 'Wer gut isst, lebt gut.', autor: 'Französische Weisheit' },
+  { text: 'Die Küche ist das Herz des Hauses.', autor: 'Volksweisheit' },
+  { text: 'Gutes Essen braucht Zeit — zum Kochen und zum Geniessen.', autor: 'Volksweisheit' },
+  { text: 'La bonne cuisine est la base du véritable bonheur.', autor: 'Auguste Escoffier' },
+  { text: 'Essen verbindet Menschen wie nichts anderes auf der Welt.', autor: 'Volksweisheit' },
+  { text: 'Freude am Essen ist eine der wenigen reinen Freuden des Lebens.', autor: 'Lin Yutang' },
+  { text: 'Ein Essen ohne Wein ist wie ein Tag ohne Sonne.', autor: 'Brillat-Savarin' },
+  { text: 'Die einfachsten Gerichte, gut zubereitet, sind die besten.', autor: 'Auguste Escoffier' },
+  { text: 'Kochen ist Kunst, Essen ist Genuss.', autor: 'Volksweisheit' },
+];
+
+function randomZitat() {
+  return ZITATE[Math.floor(Math.random() * ZITATE.length)];
+}
+
+// ── Init ─────────────────────────────────────────────────────
+async function init() {
+  const me = await (await fetch('/api/me')).json();
+  if (!me) { window.location.href = '/login.html'; return; }
+  currentUserId = me.id;
+
+  // KW + Jahr + Wochentag vorausfüllen
+  const now  = new Date();
+  const yr   = now.getFullYear();
+  const jan4 = new Date(yr, 0, 4);
+  const sow  = new Date(jan4);
+  sow.setDate(jan4.getDate() - ((jan4.getDay() + 6) % 7));
+  const kw   = Math.max(1, Math.min(53, Math.ceil((now - sow) / (7 * 24 * 3600 * 1000))));
+  ['s-kw-w','s-kw-d'].forEach(id => document.getElementById(id).value = kw);
+  ['s-yr-w','s-yr-d'].forEach(id => document.getElementById(id).value = yr);
+  document.getElementById('s-day').value = Math.min(4, Math.max(0, (now.getDay() + 6) % 7));
+
+  loadUsers();
+  await loadRecipients();
+  updateCount('w');
+  updateCount('d');
+}
+
+function showTab(name, el) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  el.classList.add('active');
+}
+
+// ── Benutzer ─────────────────────────────────────────────────
+async function loadUsers() {
+  const users = await (await fetch('/api/users')).json();
+  const tbody = document.getElementById('user-list');
+  if (!users.length) { tbody.innerHTML = '<tr><td colspan="4" style="color:#888;font-size:13px">Keine Benutzer</td></tr>'; return; }
+  tbody.innerHTML = users.map(u => `
+    <tr>
+      <td>${esc(u.name)}</td>
+      <td style="color:#555">${esc(u.username)}</td>
+      <td><span class="badge badge-admin">Admin</span></td>
+      <td>
+        <button class="btn btn-pw" onclick="openPwModal(${u.id},'${esc(u.name)}')">Passwort</button>
+        ${u.id !== currentUserId ? `<button class="btn btn-danger" onclick="deleteUser(${u.id},'${esc(u.name)}')" style="margin-left:6px">Löschen</button>` : ''}
+      </td>
+    </tr>`).join('');
+}
+
+async function createUser() {
+  const name = document.getElementById('new-name').value.trim();
+  const username = document.getElementById('new-user').value.trim();
+  const password = document.getElementById('new-pw').value;
+  const role     = document.getElementById('new-role').value;
+  const okEl  = document.getElementById('create-ok');
+  const errEl = document.getElementById('create-err');
+  okEl.style.display = 'none'; errEl.style.display = 'none';
+  if (!name || !username || !password) { errEl.textContent = 'Bitte alle Felder ausfüllen.'; errEl.style.display = 'block'; return; }
+  const r = await fetch('/api/users', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({name,username,password,role}) });
+  if (r.ok) {
+    okEl.style.display = 'block';
+    ['new-name','new-user','new-pw'].forEach(id => document.getElementById(id).value = '');
+    loadUsers();
+  } else {
+    const d = await r.json();
+    errEl.textContent = d.error || 'Fehler'; errEl.style.display = 'block';
+  }
+}
+
+async function deleteUser(id, name) {
+  if (!confirm(`Benutzer "${name}" wirklich löschen?`)) return;
+  await fetch(`/api/users/${id}`, { method:'DELETE' });
+  loadUsers();
+}
+
+function openPwModal(id, name) {
+  pwTargetId = id;
+  document.getElementById('pw-modal-name').textContent = name;
+  document.getElementById('pw-new').value = '';
+  document.getElementById('pw-err').style.display = 'none';
+  document.getElementById('pw-modal').classList.add('open');
+  setTimeout(() => document.getElementById('pw-new').focus(), 50);
+}
+function closePwModal() { document.getElementById('pw-modal').classList.remove('open'); }
+
+async function savePw() {
+  const password = document.getElementById('pw-new').value;
+  const errEl = document.getElementById('pw-err');
+  errEl.style.display = 'none';
+  const r = await fetch(`/api/users/${pwTargetId}/password`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({password}) });
+  if (r.ok) { closePwModal(); }
+  else { const d = await r.json(); errEl.textContent = d.error || 'Fehler'; errEl.style.display = 'block'; }
+}
+
+// ── Empfänger ─────────────────────────────────────────────────
+const GRUPPE_LABEL = { tag:'Tagesmenü', woche:'Wochenmenü', beide:'Beide' };
+const GRUPPE_CLASS = { tag:'badge-tag', woche:'badge-woche', beide:'badge-beide' };
+
+async function loadRecipients() {
+  allRecipients = await (await fetch('/api/recipients')).json();
+  const tbody = document.getElementById('recipient-list');
+  if (!allRecipients.length) {
+    tbody.innerHTML = '<tr><td colspan="4" style="color:#888;font-size:13px">Noch keine Empfänger</td></tr>';
+    return;
+  }
+  tbody.innerHTML = allRecipients.map(r => `
+    <tr>
+      <td>${esc(r.name)}</td>
+      <td style="color:#555">${esc(r.email)}</td>
+      <td><span class="badge ${GRUPPE_CLASS[r.gruppe]||'badge-beide'}">${GRUPPE_LABEL[r.gruppe]||r.gruppe}</span></td>
+      <td><button class="btn btn-danger" onclick="deleteRecipient(${r.id},'${esc(r.name)}')">Entfernen</button></td>
+    </tr>`).join('');
+}
+
+async function addRecipient() {
+  const name   = document.getElementById('r-name').value.trim();
+  const email  = document.getElementById('r-email').value.trim();
+  const gruppe = document.getElementById('r-gruppe').value;
+  const okEl  = document.getElementById('r-ok');
+  const errEl = document.getElementById('r-err');
+  okEl.style.display = 'none'; errEl.style.display = 'none';
+  if (!name || !email) { errEl.textContent = 'Name und E-Mail erforderlich.'; errEl.style.display = 'block'; return; }
+  const r = await fetch('/api/recipients', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({name,email,gruppe}) });
+  if (r.ok) {
+    okEl.style.display = 'block';
+    ['r-name','r-email'].forEach(id => document.getElementById(id).value = '');
+    await loadRecipients();
+    updateCount('w'); updateCount('d');
+  } else {
+    const d = await r.json();
+    errEl.textContent = d.error || 'Fehler'; errEl.style.display = 'block';
+  }
+}
+
+async function deleteRecipient(id, name) {
+  if (!confirm(`"${name}" aus der Verteilerliste entfernen?`)) return;
+  await fetch(`/api/recipients/${id}`, { method:'DELETE' });
+  await loadRecipients();
+  updateCount('w'); updateCount('d');
+}
+
+// ── Empfänger filtern ─────────────────────────────────────────
+// gruppenWert: 'woche+beide' | 'tag+beide' | 'woche' | 'tag' | 'beide' | 'alle'
+function filterRecipients(gruppenWert) {
+  switch (gruppenWert) {
+    case 'woche+beide': return allRecipients.filter(r => r.gruppe === 'woche' || r.gruppe === 'beide');
+    case 'tag+beide':   return allRecipients.filter(r => r.gruppe === 'tag'   || r.gruppe === 'beide');
+    case 'woche':       return allRecipients.filter(r => r.gruppe === 'woche');
+    case 'tag':         return allRecipients.filter(r => r.gruppe === 'tag');
+    case 'beide':       return allRecipients.filter(r => r.gruppe === 'beide');
+    case 'alle':        return allRecipients;
+    default:            return [];
+  }
+}
+
+function updateCount(suffix) {
+  const isWeek = suffix === 'w';
+  const gr   = document.getElementById(isWeek ? 's-gruppe-w' : 's-gruppe-d').value;
+  const list = filterRecipients(gr);
+  const el   = document.getElementById('count-' + suffix);
+  el.textContent = list.length
+    ? list.length + ' Empfänger: ' + list.map(r => r.name).join(', ')
+    : 'Keine Empfänger in dieser Gruppe';
+  el.style.color = list.length ? '#2d5a3d' : '#a32d2d';
+}
+
+// ── Outlook öffnen ────────────────────────────────────────────
+function formatWeekText(menuData, kw, year) {
+  const m1 = (menuData && menuData[0]) || [];
+  const m2 = (menuData && menuData[1]) || [];
+  let t = 'Wochenmenu OPRA -- KW ' + kw + ' / ' + year + '\n';
+  t += '='.repeat(40) + '\n\n';
+  for (let i = 0; i < 5; i++) {
+    const d1 = m1[i] || {};
+    const d2 = m2[i] || {};
+    t += DAYS_DE[i].toUpperCase() + '\n';
+    t += '-'.repeat(20) + '\n';
+    t += 'Menu 1\n';
+    if (d1.vorspeise) t += '  Vorspeise: ' + d1.vorspeise + '\n';
+    if (d1.hauptgang) t += '  Hauptgang: ' + d1.hauptgang + '\n';
+    if (d1.beilage)   t += '  Beilage:   ' + d1.beilage   + '\n';
+    if (d1.dessert)   t += '  Dessert:   ' + d1.dessert   + '\n';
+    if (d1.fleisch)   t += '  Fleisch:   ' + d1.fleisch   + '\n';
+    t += '\nMenu 2\n';
+    if (d2.hauptgang) t += '  Hauptgang: ' + d2.hauptgang + '\n';
+    if (d2.beilage)   t += '  Beilage:   ' + d2.beilage   + '\n';
+    if (d2.fleisch)   t += '  Fleisch:   ' + d2.fleisch   + '\n';
+    t += '\n';
+  }
+  const z = randomZitat();
+  t += '_'.repeat(40) + '\n';
+  t += '"' + z.text + '"\n-- ' + z.autor + '\n';
+  return t;
+}
+
+function formatDayText(menuData, kw, year, dayIndex) {
+  const d1 = (menuData && menuData[0] && menuData[0][dayIndex]) || {};
+  const d2 = (menuData && menuData[1] && menuData[1][dayIndex]) || {};
+  let t = 'Tagesmenu OPRA -- ' + DAYS_DE[dayIndex] + ', KW ' + kw + ' / ' + year + '\n';
+  t += '='.repeat(40) + '\n\n';
+  t += 'Menu 1\n';
+  if (d1.vorspeise) t += '  Vorspeise: ' + d1.vorspeise + '\n';
+  if (d1.hauptgang) t += '  Hauptgang: ' + d1.hauptgang + '\n';
+  if (d1.beilage)   t += '  Beilage:   ' + d1.beilage   + '\n';
+  if (d1.dessert)   t += '  Dessert:   ' + d1.dessert   + '\n';
+  if (d1.fleisch)   t += '  Fleisch:   ' + d1.fleisch   + '\n';
+  t += '\nMenu 2\n';
+  if (d2.hauptgang) t += '  Hauptgang: ' + d2.hauptgang + '\n';
+  if (d2.beilage)   t += '  Beilage:   ' + d2.beilage   + '\n';
+  if (d2.fleisch)   t += '  Fleisch:   ' + d2.fleisch   + '\n';
+  const z = randomZitat();
+  t += '\n' + '_'.repeat(40) + '\n';
+  t += '"' + z.text + '"\n-- ' + z.autor + '\n';
+  return t;
+}
+
+async function openOutlook(type) {
+  const isWeek = type === 'week';
+  const kw     = parseInt(document.getElementById(isWeek ? 's-kw-w' : 's-kw-d').value);
+  const year   = parseInt(document.getElementById(isWeek ? 's-yr-w' : 's-yr-d').value);
+  const errEl  = document.getElementById(isWeek ? 'send-w-err' : 'send-d-err');
+  errEl.style.display = 'none';
+
+  if (!kw || !year) { errEl.textContent = 'KW und Jahr erforderlich.'; errEl.style.display = 'block'; return; }
+
+  const gr      = document.getElementById(isWeek ? 's-gruppe-w' : 's-gruppe-d').value;
+  const targets = filterRecipients(gr);
+
+  if (!targets.length) { errEl.textContent = 'Keine Empfänger in dieser Gruppe.'; errEl.style.display = 'block'; return; }
+
+  // Menüdaten laden
+  const menuData = await (await fetch('/api/menu/' + year + '/' + kw)).json();
+
+  let subject, body;
+  if (isWeek) {
+    subject = 'Wochenmenu OPRA -- KW ' + kw + ' / ' + year;
+    body    = formatWeekText(menuData, kw, year);
+  } else {
+    const dayIndex = parseInt(document.getElementById('s-day').value);
+    subject = 'Tagesmenu OPRA -- ' + DAYS_DE[dayIndex] + ', KW ' + kw;
+    body    = formatDayText(menuData, kw, year, dayIndex);
+  }
+
+  // BCC: alle Empfänger (sehen sich gegenseitig nicht)
+  const bcc = targets.map(r => r.email).join(';');
+  const mailto = 'mailto:?bcc=' + encodeURIComponent(bcc)
+    + '&subject=' + encodeURIComponent(subject)
+    + '&body='    + encodeURIComponent(body);
+
+  window.location.href = mailto;
+}
+
+async function logout() {
+  await fetch('/api/logout', { method:'POST' });
+  window.location.href = '/login.html';
+}
+
+function esc(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+init();
+</script>
+</body>
+</html>

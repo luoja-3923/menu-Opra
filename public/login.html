@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Menü OPRA — Anmeldung</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  min-height: 100vh;
+  background: #3d6b50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.card {
+  background: #f5efe0;
+  border-radius: 16px;
+  padding: 48px 44px 40px;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+}
+
+.logo {
+  text-align: center;
+  margin-bottom: 36px;
+}
+
+.logo-title {
+  font-family: 'Cinzel', serif;
+  font-size: 28px;
+  color: #2d5a3d;
+  letter-spacing: 0.2em;
+  margin-bottom: 6px;
+}
+
+.logo-sub {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 15px;
+  color: #6b5030;
+  letter-spacing: 0.08em;
+  font-style: italic;
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid rgba(200,160,80,0.4);
+  margin: 0 0 28px;
+}
+
+label {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 5px;
+}
+
+input {
+  width: 100%;
+  border: 1px solid #d0cfc9;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 15px;
+  background: #fff;
+  outline: none;
+  transition: border 0.15s;
+  font-family: inherit;
+  margin-bottom: 18px;
+}
+
+input:focus { border-color: #2d5a3d; }
+
+button {
+  width: 100%;
+  background: #2d5a3d;
+  color: #c8a050;
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: 'Cinzel', serif;
+  letter-spacing: 0.06em;
+  transition: background 0.15s;
+  margin-top: 4px;
+}
+
+button:hover { background: #1b3d2b; }
+
+.error {
+  background: #fcebeb;
+  border: 1px solid #f09595;
+  color: #a32d2d;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  margin-bottom: 16px;
+  display: none;
+}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <div class="logo-title">✦ MENÜ OPRA ✦</div>
+    <div class="logo-sub">Internes Menuplanungs-Tool</div>
+  </div>
+  <hr class="divider">
+
+  <div class="error" id="error-msg"></div>
+
+  <form id="login-form" onsubmit="login(event)">
+    <label for="username">Benutzername</label>
+    <input id="username" type="text" autocomplete="username" autocapitalize="none" required>
+
+    <label for="password">Passwort</label>
+    <input id="password" type="password" autocomplete="current-password" required>
+
+    <button type="submit" id="btn">Anmelden</button>
+  </form>
+</div>
+
+<script>
+async function login(e) {
+  e.preventDefault();
+  const btn = document.getElementById('btn');
+  const err = document.getElementById('error-msg');
+  btn.textContent = '…';
+  btn.disabled = true;
+  err.style.display = 'none';
+
+  try {
+    const r = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: document.getElementById('username').value.trim(),
+        password: document.getElementById('password').value
+      })
+    });
+    if (r.ok) {
+      window.location.href = '/';
+    } else {
+      const data = await r.json();
+      err.textContent = data.error || 'Anmeldung fehlgeschlagen';
+      err.style.display = 'block';
+    }
+  } catch(e) {
+    err.textContent = 'Server nicht erreichbar';
+    err.style.display = 'block';
+  }
+
+  btn.textContent = 'Anmelden';
+  btn.disabled = false;
+}
+</script>
+</body>
+</html>

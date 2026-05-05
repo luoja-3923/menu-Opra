@@ -1,0 +1,7 @@
+node_modules/
+data/users.json
+data/menus.json
+data/recipients.json
+data/smtp.json
+.vs/
+*.txt
