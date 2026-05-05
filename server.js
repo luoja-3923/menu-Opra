@@ -30,7 +30,8 @@ function requireAdmin(req, res, next) {
 }
 
 // ── Hauptseite: HTML + Patch inline injizieren ───────────────
-const patchJs = fs.readFileSync(path.join(__dirname, 'public', 'patch.js'), 'utf8');
+const patchJs  = fs.readFileSync(path.join(__dirname, 'public', 'patch.js'),  'utf8');
+const themesJs = fs.readFileSync(path.join(__dirname, 'public', 'themes.js'), 'utf8');
 
 app.get('/', (req, res) => {
   if (!req.session.userId) return res.redirect('/login.html');
@@ -38,7 +39,11 @@ app.get('/', (req, res) => {
   let html = fs.readFileSync(htmlPath, 'utf8');
   const lastBody = html.lastIndexOf('</body>');
   if (lastBody !== -1) {
-    html = html.slice(0, lastBody) + '<script>\n' + patchJs + '\n</script></body>' + html.slice(lastBody + 7);
+    html = html.slice(0, lastBody)
+      + '<script>\n' + patchJs  + '\n</script>'
+      + '<script>\n' + themesJs + '\n</script>'
+      + '</body>'
+      + html.slice(lastBody + 7);
   }
   res.send(html);
 });
